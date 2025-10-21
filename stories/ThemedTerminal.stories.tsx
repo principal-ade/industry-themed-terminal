@@ -2,12 +2,12 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { useRef, useEffect, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { ThemeProvider } from '@a24z/industry-theme';
-import { ThemedTerminal } from '../src/components/ThemedTerminal';
+import { ThemedTerminalWithProvider } from '../src/components/ThemedTerminalWithProvider';
 import type { ThemedTerminalRef } from '../src/types/terminal.types';
 
 const meta = {
   title: 'Components/ThemedTerminal',
-  component: ThemedTerminal,
+  component: ThemedTerminalWithProvider,
   parameters: {
     layout: 'fullscreen',
   },
@@ -45,20 +45,30 @@ export const Basic: Story = {
   },
   render: (args) => {
     const terminalRef = useRef<ThemedTerminalRef>(null);
+    const [isReady, setIsReady] = useState(false);
 
     useEffect(() => {
-      if (terminalRef.current) {
+      // Wait a bit for terminal to be fully initialized
+      const timer = setTimeout(() => {
+        setIsReady(true);
+      }, 100);
+      return () => clearTimeout(timer);
+    }, []);
+
+    useEffect(() => {
+      if (isReady && terminalRef.current) {
+        console.log('Writing to terminal...');
         terminalRef.current.write('Welcome to ThemedTerminal!\r\n');
         terminalRef.current.write(
           'This is a pure UI component for testing.\r\n\r\n',
         );
         terminalRef.current.write('$ ');
       }
-    }, []);
+    }, [isReady]);
 
     return (
       <div style={{ height: '600px', width: '100%' }}>
-        <ThemedTerminal ref={terminalRef} {...args} />
+        <ThemedTerminalWithProvider ref={terminalRef} {...args} />
       </div>
     );
   },
@@ -75,39 +85,47 @@ export const WithOutput: Story = {
   },
   render: (args) => {
     const terminalRef = useRef<ThemedTerminalRef>(null);
+    const [isReady, setIsReady] = useState(false);
 
     useEffect(() => {
-      if (terminalRef.current) {
-        const lines = [
-          '$ npm install\r\n',
-          '\x1b[32m✓\x1b[0m Installed 245 packages in 3.2s\r\n\r\n',
-          '$ npm run build\r\n',
-          '\x1b[36mBuilding for production...\x1b[0m\r\n',
-          '  - Compiling TypeScript... \x1b[32mdone\x1b[0m\r\n',
-          '  - Bundling assets... \x1b[32mdone\x1b[0m\r\n',
-          '  - Optimizing... \x1b[32mdone\x1b[0m\r\n\r\n',
-          '\x1b[32m✓\x1b[0m Build completed successfully!\r\n',
-          '\x1b[90mOutput: dist/\x1b[0m\r\n\r\n',
-          '$ ',
-        ];
-
-        let index = 0;
-        const interval = setInterval(() => {
-          if (index < lines.length && terminalRef.current) {
-            terminalRef.current.write(lines[index]);
-            index++;
-          } else {
-            clearInterval(interval);
-          }
-        }, 200);
-
-        return () => clearInterval(interval);
-      }
+      const timer = setTimeout(() => {
+        setIsReady(true);
+      }, 100);
+      return () => clearTimeout(timer);
     }, []);
+
+    useEffect(() => {
+      if (!isReady || !terminalRef.current) return;
+
+      const lines = [
+        '$ npm install\r\n',
+        '\x1b[32m✓\x1b[0m Installed 245 packages in 3.2s\r\n\r\n',
+        '$ npm run build\r\n',
+        '\x1b[36mBuilding for production...\x1b[0m\r\n',
+        '  - Compiling TypeScript... \x1b[32mdone\x1b[0m\r\n',
+        '  - Bundling assets... \x1b[32mdone\x1b[0m\r\n',
+        '  - Optimizing... \x1b[32mdone\x1b[0m\r\n\r\n',
+        '\x1b[32m✓\x1b[0m Build completed successfully!\r\n',
+        '\x1b[90mOutput: dist/\x1b[0m\r\n\r\n',
+        '$ ',
+      ];
+
+      let index = 0;
+      const interval = setInterval(() => {
+        if (index < lines.length && terminalRef.current) {
+          terminalRef.current.write(lines[index]);
+          index++;
+        } else {
+          clearInterval(interval);
+        }
+      }, 200);
+
+      return () => clearInterval(interval);
+    }, [isReady]);
 
     return (
       <div style={{ height: '600px', width: '100%' }}>
-        <ThemedTerminal ref={terminalRef} {...args} />
+        <ThemedTerminalWithProvider ref={terminalRef} {...args} />
       </div>
     );
   },
@@ -123,35 +141,43 @@ export const ColoredOutput: Story = {
   },
   render: (args) => {
     const terminalRef = useRef<ThemedTerminalRef>(null);
+    const [isReady, setIsReady] = useState(false);
 
     useEffect(() => {
-      if (terminalRef.current) {
-        terminalRef.current.write(
-          '\x1b[1;31mError:\x1b[0m Something went wrong\r\n',
-        );
-        terminalRef.current.write(
-          '\x1b[1;33mWarning:\x1b[0m This is deprecated\r\n',
-        );
-        terminalRef.current.write(
-          '\x1b[1;32mSuccess:\x1b[0m Build completed\r\n',
-        );
-        terminalRef.current.write(
-          '\x1b[1;34mInfo:\x1b[0m Starting server...\r\n',
-        );
-        terminalRef.current.write('\x1b[1;35mDebug:\x1b[0m Loaded config\r\n');
-        terminalRef.current.write(
-          '\x1b[1;36mLog:\x1b[0m Server listening on port 3000\r\n\r\n',
-        );
-        terminalRef.current.write(
-          'Links: \x1b]8;;http://localhost:3000\x1b\\http://localhost:3000\x1b]8;;\x1b\\\r\n',
-        );
-        terminalRef.current.write('$ ');
-      }
+      const timer = setTimeout(() => {
+        setIsReady(true);
+      }, 100);
+      return () => clearTimeout(timer);
     }, []);
+
+    useEffect(() => {
+      if (!isReady || !terminalRef.current) return;
+
+      terminalRef.current.write(
+        '\x1b[1;31mError:\x1b[0m Something went wrong\r\n',
+      );
+      terminalRef.current.write(
+        '\x1b[1;33mWarning:\x1b[0m This is deprecated\r\n',
+      );
+      terminalRef.current.write(
+        '\x1b[1;32mSuccess:\x1b[0m Build completed\r\n',
+      );
+      terminalRef.current.write(
+        '\x1b[1;34mInfo:\x1b[0m Starting server...\r\n',
+      );
+      terminalRef.current.write('\x1b[1;35mDebug:\x1b[0m Loaded config\r\n');
+      terminalRef.current.write(
+        '\x1b[1;36mLog:\x1b[0m Server listening on port 3000\r\n\r\n',
+      );
+      terminalRef.current.write(
+        'Links: \x1b]8;;http://localhost:3000\x1b\\http://localhost:3000\x1b]8;;\x1b\\\r\n',
+      );
+      terminalRef.current.write('$ ');
+    }, [isReady]);
 
     return (
       <div style={{ height: '600px', width: '100%' }}>
-        <ThemedTerminal ref={terminalRef} {...args} />
+        <ThemedTerminalWithProvider ref={terminalRef} {...args} />
       </div>
     );
   },
@@ -180,7 +206,7 @@ export const WithBadge: Story = {
 
     return (
       <div style={{ height: '600px', width: '100%' }}>
-        <ThemedTerminal ref={terminalRef} {...args} />
+        <ThemedTerminalWithProvider ref={terminalRef} {...args} />
       </div>
     );
   },
@@ -204,7 +230,7 @@ export const NoHeader: Story = {
 
     return (
       <div style={{ height: '600px', width: '100%' }}>
-        <ThemedTerminal ref={terminalRef} {...args} />
+        <ThemedTerminalWithProvider ref={terminalRef} {...args} />
       </div>
     );
   },
@@ -234,7 +260,7 @@ export const WithAllActions: Story = {
 
     return (
       <div style={{ height: '600px', width: '100%' }}>
-        <ThemedTerminal ref={terminalRef} {...args} />
+        <ThemedTerminalWithProvider ref={terminalRef} {...args} />
       </div>
     );
   },
@@ -267,7 +293,7 @@ export const OwnershipOverlay: Story = {
   },
   render: (args) => (
     <div style={{ height: '600px', width: '100%' }}>
-      <ThemedTerminal {...args} />
+      <ThemedTerminalWithProvider {...args} />
     </div>
   ),
 };
@@ -286,7 +312,7 @@ export const LoadingOverlay: Story = {
   },
   render: (args) => (
     <div style={{ height: '600px', width: '100%' }}>
-      <ThemedTerminal {...args} />
+      <ThemedTerminalWithProvider {...args} />
     </div>
   ),
 };
@@ -317,7 +343,7 @@ export const ErrorOverlay: Story = {
   },
   render: (args) => (
     <div style={{ height: '600px', width: '100%' }}>
-      <ThemedTerminal {...args} />
+      <ThemedTerminalWithProvider {...args} />
     </div>
   ),
 };
@@ -390,7 +416,7 @@ export const Interactive: Story = {
 
     return (
       <div style={{ height: '600px', width: '100%' }}>
-        <ThemedTerminal ref={terminalRef} {...args} onData={handleData} />
+        <ThemedTerminalWithProvider ref={terminalRef} {...args} onData={handleData} />
       </div>
     );
   },
@@ -421,7 +447,7 @@ export const WithLinks: Story = {
 
     return (
       <div style={{ height: '600px', width: '100%' }}>
-        <ThemedTerminal ref={terminalRef} {...args} />
+        <ThemedTerminalWithProvider ref={terminalRef} {...args} />
       </div>
     );
   },
@@ -447,7 +473,72 @@ export const Small: Story = {
 
     return (
       <div style={{ height: '300px', width: '400px' }}>
-        <ThemedTerminal ref={terminalRef} {...args} />
+        <ThemedTerminalWithProvider ref={terminalRef} {...args} />
+      </div>
+    );
+  },
+};
+
+/**
+ * Debug terminal - Test if output is visible
+ */
+export const Debug: Story = {
+  args: {
+    headerTitle: 'Debug Terminal',
+    headerSubtitle: 'Testing output visibility',
+  },
+  render: (args) => {
+    const terminalRef = useRef<ThemedTerminalRef>(null);
+    const [isReady, setIsReady] = useState(false);
+
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        setIsReady(true);
+      }, 200);
+      return () => clearTimeout(timer);
+    }, []);
+
+    useEffect(() => {
+      if (!isReady || !terminalRef.current) return;
+
+      console.log('Terminal ref exists, writing content...');
+      const term = terminalRef.current;
+
+      // Write a bunch of visible content
+      term.write('\x1b[1;32m================================\x1b[0m\r\n');
+      term.write('\x1b[1;36m   TERMINAL OUTPUT TEST\x1b[0m\r\n');
+      term.write('\x1b[1;32m================================\x1b[0m\r\n\r\n');
+
+      term.write('\x1b[33mIf you can see this, the terminal is working!\x1b[0m\r\n\r\n');
+
+      term.write('\x1b[1mTesting different colors:\x1b[0m\r\n');
+      term.write('  \x1b[31m● Red text\x1b[0m\r\n');
+      term.write('  \x1b[32m● Green text\x1b[0m\r\n');
+      term.write('  \x1b[33m● Yellow text\x1b[0m\r\n');
+      term.write('  \x1b[34m● Blue text\x1b[0m\r\n');
+      term.write('  \x1b[35m● Magenta text\x1b[0m\r\n');
+      term.write('  \x1b[36m● Cyan text\x1b[0m\r\n\r\n');
+
+      term.write('\x1b[1mSample command output:\x1b[0m\r\n');
+      term.write('$ npm install\r\n');
+      term.write('Installing dependencies...\r\n');
+      term.write('\x1b[32m✓\x1b[0m Installed 245 packages\r\n');
+      term.write('\x1b[32m✓\x1b[0m Build successful\r\n\r\n');
+
+      term.write('$ ls -la\r\n');
+      term.write('drwxr-xr-x   10 user  staff    320 Jan 15 10:30 \x1b[34m.\x1b[0m\r\n');
+      term.write('drwxr-xr-x   15 user  staff    480 Jan 15 10:29 \x1b[34m..\x1b[0m\r\n');
+      term.write('-rw-r--r--    1 user  staff   1234 Jan 15 10:30 README.md\r\n');
+      term.write('-rw-r--r--    1 user  staff    567 Jan 15 10:29 package.json\r\n\r\n');
+
+      term.write('\x1b[1;32m$ \x1b[0m');
+
+      console.log('Terminal content written successfully');
+    }, [isReady]);
+
+    return (
+      <div style={{ height: '600px', width: '100%' }}>
+        <ThemedTerminalWithProvider ref={terminalRef} {...args} />
       </div>
     );
   },
