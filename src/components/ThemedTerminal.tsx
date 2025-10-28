@@ -382,6 +382,28 @@ export const ThemedTerminal = forwardRef<ThemedTerminalRef, ThemedTerminalCompon
       };
     }, [terminal, onResize]);
 
+    // Prevent space key from bubbling to parent containers (e.g., carousels)
+    // This ensures space key works correctly in the terminal regardless of parent behavior
+    useEffect(() => {
+      const terminalElement = terminalRef.current;
+      if (!terminalElement) return;
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        // Prevent space key from propagating to parent containers
+        // This fixes issues where carousels or other scrollable containers
+        // might intercept the space key before the terminal can use it
+        if (e.key === ' ' || e.key === 'Space') {
+          e.stopPropagation();
+        }
+      };
+
+      terminalElement.addEventListener('keydown', handleKeyDown, true);
+
+      return () => {
+        terminalElement.removeEventListener('keydown', handleKeyDown, true);
+      };
+    }, []);
+
     // Focus terminal when it becomes visible
     useEffect(() => {
       if (terminal && autoFocus && isVisible) {
