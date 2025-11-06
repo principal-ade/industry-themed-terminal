@@ -91,6 +91,8 @@ export const ThemedTerminal = forwardRef<ThemedTerminalRef, ThemedTerminalCompon
     const userScrolledAwayRef = useRef(false);
     const lastScrollPositionRef = useRef(0);
     const performFitRef = useRef<(() => void) | null>(null);
+    const lastContainerDimensionsRef = useRef<{ width: number; height: number } | null>(null);
+    const lastFitTimeRef = useRef<number>(0);
 
     // Keep isVisible ref in sync
     useEffect(() => {
@@ -286,6 +288,14 @@ export const ThemedTerminal = forwardRef<ThemedTerminalRef, ThemedTerminalCompon
       const performFit = () => {
         if (!fitAddonRef.current || !terminalRef.current || !term) return;
 
+        // Throttle fit operations to prevent excessive calls during Ink app updates
+        // Allow fits at most every 50ms
+        const now = Date.now();
+        if (now - lastFitTimeRef.current < 50) {
+          return;
+        }
+        lastFitTimeRef.current = now;
+
         const rect = terminalRef.current.getBoundingClientRect();
 
         if (rect.width > 0 && rect.height > 0) {
@@ -318,22 +328,36 @@ export const ThemedTerminal = forwardRef<ThemedTerminalRef, ThemedTerminalCompon
           clearTimeout(resizeTimeoutRef.current);
         }
 
+        // Debounce resize operations to prevent excessive fits during Ink app rendering
         resizeTimeoutRef.current = setTimeout(() => {
           performFit();
-        }, 100);
+        }, 150);
       };
 
       window.addEventListener('resize', handleResize);
 
       // ResizeObserver for container resize
+      // Only trigger resize when dimensions actually change to avoid Ink app flickering
       const resizeObserver = new ResizeObserver((entries) => {
         const entry = entries[0];
+        if (!entry || !isVisibleRef.current) return;
+
+        const newWidth = entry.contentRect.width;
+        const newHeight = entry.contentRect.height;
+
+        // Skip if dimensions are invalid
+        if (newWidth <= 0 || newHeight <= 0) return;
+
+        const lastDimensions = lastContainerDimensionsRef.current;
+
+        // Only trigger resize if dimensions actually changed
+        // This prevents ResizeObserver from firing on terminal content changes (Ink apps)
         if (
-          entry &&
-          entry.contentRect.width > 0 &&
-          entry.contentRect.height > 0 &&
-          isVisibleRef.current
+          !lastDimensions ||
+          Math.abs(lastDimensions.width - newWidth) > 1 ||
+          Math.abs(lastDimensions.height - newHeight) > 1
         ) {
+          lastContainerDimensionsRef.current = { width: newWidth, height: newHeight };
           handleResize();
         }
       });
