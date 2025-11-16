@@ -290,7 +290,7 @@ export const ThemedTerminal = forwardRef<ThemedTerminalRef, ThemedTerminalCompon
 
       setTerminal(term);
 
-      // Simple fit function - only called on real window resize
+      // Simple fit function
       const performFit = () => {
         if (!fitAddonRef.current || !terminalRef.current || !term || !isVisibleRef.current) return;
 
@@ -304,7 +304,7 @@ export const ThemedTerminal = forwardRef<ThemedTerminalRef, ThemedTerminalCompon
         }
       };
 
-      // Only handle window resize events (not content changes)
+      // Handle container resize events (parent size changes)
       const handleResize = () => {
         if (resizeTimeoutRef.current) {
           clearTimeout(resizeTimeoutRef.current);
@@ -316,13 +316,22 @@ export const ThemedTerminal = forwardRef<ThemedTerminalRef, ThemedTerminalCompon
         }, 100);
       };
 
-      window.addEventListener('resize', handleResize);
+      // Observe the terminal container for size changes
+      // This captures window resize, flex layout changes, panel splits, etc.
+      // Observing the container div (not xterm internals) avoids spurious events from content changes
+      const resizeObserver = new ResizeObserver(() => {
+        handleResize();
+      });
+
+      if (terminalRef.current) {
+        resizeObserver.observe(terminalRef.current);
+      }
 
       // Initial fit
       performFit();
 
       return () => {
-        window.removeEventListener('resize', handleResize);
+        resizeObserver.disconnect();
         scrollDisposable.dispose();
         if (resizeTimeoutRef.current) {
           clearTimeout(resizeTimeoutRef.current);
