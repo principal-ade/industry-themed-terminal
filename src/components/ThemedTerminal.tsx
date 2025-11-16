@@ -88,11 +88,7 @@ export const ThemedTerminal = forwardRef<ThemedTerminalRef, ThemedTerminalCompon
     const searchAddonRef = useRef<SearchAddon | null>(null);
     const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isVisibleRef = useRef(isVisible);
-    const userScrolledAwayRef = useRef(false);
-    const lastScrollPositionRef = useRef(0);
-    const performFitRef = useRef<(() => void) | null>(null);
-    const lastContainerDimensionsRef = useRef<{ width: number; height: number } | null>(null);
-    const lastFitTimeRef = useRef<number>(0);
+    const isScrollLockedRef = useRef(true); // Simple: locked to bottom by default
 
     // Keep isVisible ref in sync
     useEffect(() => {
@@ -105,18 +101,27 @@ export const ThemedTerminal = forwardRef<ThemedTerminalRef, ThemedTerminalCompon
       () => ({
         write: (data: string | Uint8Array) => {
           if (terminal) {
-            terminal.write(data);
+            terminal.write(data, () => {
+              // Auto-scroll to bottom if locked
+              if (isScrollLockedRef.current) {
+                terminal.scrollToBottom();
+              }
+            });
           }
         },
         writeln: (data: string) => {
           if (terminal) {
             terminal.writeln(data);
+            // Auto-scroll to bottom if locked
+            if (isScrollLockedRef.current) {
+              terminal.scrollToBottom();
+            }
           }
         },
         scrollToBottom: () => {
           if (terminal) {
             terminal.scrollToBottom();
-            userScrolledAwayRef.current = false;
+            isScrollLockedRef.current = true;
           }
         },
         focus: () => {
@@ -176,8 +181,14 @@ export const ThemedTerminal = forwardRef<ThemedTerminalRef, ThemedTerminalCompon
           }
         },
         fit: () => {
-          if (performFitRef.current) {
-            performFitRef.current();
+          if (fitAddonRef.current && terminal) {
+            fitAddonRef.current.fit();
+            // Restore scroll lock behavior after fit
+            if (isScrollLockedRef.current) {
+              requestAnimationFrame(() => {
+                terminal.scrollToBottom();
+              });
+            }
           }
         },
       }),
@@ -249,20 +260,15 @@ export const ThemedTerminal = forwardRef<ThemedTerminalRef, ThemedTerminalCompon
       // Open terminal in the DOM
       term.open(terminalRef.current);
 
-      // Track user scroll intent
-      const handleScroll = () => {
-        const scrollPosition = term.buffer.active.viewportY;
-        const baseScrollback = term.buffer.active.baseY;
-        const isAtBottom =
-          scrollPosition + term.rows >= baseScrollback + term.rows;
+      // Track scroll lock state - lock/unlock based on scroll position
+      const scrollDisposable = term.onScroll(() => {
+        const scrollY = term.buffer.active.viewportY;
+        const scrollback = term.buffer.active.baseY;
+        const isAtBottom = (scrollY + term.rows) >= (scrollback + term.rows);
 
-        if (scrollPosition !== lastScrollPositionRef.current) {
-          userScrolledAwayRef.current = !isAtBottom;
-          lastScrollPositionRef.current = scrollPosition;
-        }
-      };
-
-      const scrollDisposable = term.onScroll(handleScroll);
+        // Lock if at bottom, unlock if user scrolled up
+        isScrollLockedRef.current = isAtBottom;
+      });
 
       // Add WebGL renderer if enabled
       if (enableWebGL) {
@@ -284,91 +290,39 @@ export const ThemedTerminal = forwardRef<ThemedTerminalRef, ThemedTerminalCompon
 
       setTerminal(term);
 
-      // Fit function with scroll position preservation
+      // Simple fit function - only called on real window resize
       const performFit = () => {
-        if (!fitAddonRef.current || !terminalRef.current || !term) return;
+        if (!fitAddonRef.current || !terminalRef.current || !term || !isVisibleRef.current) return;
 
-        // Throttle fit operations to prevent excessive calls during Ink app updates
-        // Allow fits at most every 50ms
-        const now = Date.now();
-        if (now - lastFitTimeRef.current < 50) {
-          return;
-        }
-        lastFitTimeRef.current = now;
+        fitAddonRef.current.fit();
 
-        const rect = terminalRef.current.getBoundingClientRect();
-
-        if (rect.width > 0 && rect.height > 0) {
-          const scrollPosition = term.buffer.active.viewportY;
-          const baseScrollback = term.buffer.active.baseY;
-          const wasAtBottom =
-            scrollPosition + term.rows >= baseScrollback + term.rows;
-
-          fitAddonRef.current.fit();
-
+        // After fit, restore scroll lock behavior
+        if (isScrollLockedRef.current) {
           requestAnimationFrame(() => {
-            if (term) {
-              if (wasAtBottom && !userScrolledAwayRef.current) {
-                term.scrollToBottom();
-              } else {
-                term.scrollToLine(scrollPosition);
-              }
-            }
+            term.scrollToBottom();
           });
         }
       };
 
-      performFitRef.current = performFit;
-
-      // Handle resize with debouncing
+      // Only handle window resize events (not content changes)
       const handleResize = () => {
-        if (!fitAddonRef.current || !isVisibleRef.current || !term) return;
-
         if (resizeTimeoutRef.current) {
           clearTimeout(resizeTimeoutRef.current);
         }
 
-        // Debounce resize operations to prevent excessive fits during Ink app rendering
+        // Debounce resize to avoid rapid fits during window resizing
         resizeTimeoutRef.current = setTimeout(() => {
           performFit();
-        }, 150);
+        }, 100);
       };
 
       window.addEventListener('resize', handleResize);
 
-      // ResizeObserver for container resize
-      // Only trigger resize when dimensions actually change to avoid Ink app flickering
-      const resizeObserver = new ResizeObserver((entries) => {
-        const entry = entries[0];
-        if (!entry || !isVisibleRef.current) return;
-
-        const newWidth = entry.contentRect.width;
-        const newHeight = entry.contentRect.height;
-
-        // Skip if dimensions are invalid
-        if (newWidth <= 0 || newHeight <= 0) return;
-
-        const lastDimensions = lastContainerDimensionsRef.current;
-
-        // Only trigger resize if dimensions actually changed
-        // This prevents ResizeObserver from firing on terminal content changes (Ink apps)
-        if (
-          !lastDimensions ||
-          Math.abs(lastDimensions.width - newWidth) > 1 ||
-          Math.abs(lastDimensions.height - newHeight) > 1
-        ) {
-          lastContainerDimensionsRef.current = { width: newWidth, height: newHeight };
-          handleResize();
-        }
-      });
-
-      if (terminalRef.current) {
-        resizeObserver.observe(terminalRef.current);
-      }
+      // Initial fit
+      performFit();
 
       return () => {
         window.removeEventListener('resize', handleResize);
-        resizeObserver.disconnect();
         scrollDisposable.dispose();
         if (resizeTimeoutRef.current) {
           clearTimeout(resizeTimeoutRef.current);
@@ -439,10 +393,12 @@ export const ThemedTerminal = forwardRef<ThemedTerminalRef, ThemedTerminalCompon
 
     // Handle visibility changes - resize when becoming visible
     useEffect(() => {
-      if (terminal && isVisible) {
+      if (terminal && isVisible && fitAddonRef.current) {
         setTimeout(() => {
-          if (performFitRef.current) {
-            performFitRef.current();
+          fitAddonRef.current?.fit();
+          // Restore scroll lock behavior after fit
+          if (isScrollLockedRef.current) {
+            terminal.scrollToBottom();
           }
         }, 50);
       }
