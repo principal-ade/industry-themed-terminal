@@ -17,6 +17,8 @@ export interface TerminalOverlayState {
     primary?: boolean;
     icon?: React.ReactNode;
   }>;
+  /** Background opacity (0-1, default 1.0 for full opacity) */
+  opacity?: number;
 }
 
 /**

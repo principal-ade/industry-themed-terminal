@@ -625,6 +625,7 @@ export const ThemedTerminal = forwardRef<ThemedTerminalRef, ThemedTerminalCompon
                 alignItems: 'center',
                 justifyContent: 'center',
                 backgroundColor: theme.colors.background,
+                opacity: overlayState.opacity ?? 1.0,
                 gap: '16px',
                 padding: '32px',
                 zIndex: 10,

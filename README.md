@@ -156,6 +156,7 @@ function Terminal() {
   const overlayState = {
     message: 'Terminal is owned by another window',
     subtitle: 'This terminal is currently active in a different window.',
+    opacity: 1.0, // Full opacity (default) - completely hides terminal content
     actions: [
       {
         label: 'Claim Ownership',
@@ -173,6 +174,12 @@ function Terminal() {
   );
 }
 ```
+
+The `opacity` property controls the overlay background opacity (0-1):
+- `1.0` (default): Full opacity - completely hides terminal content
+- `0.85`: Semi-transparent - terminal content slightly visible
+- `0.5`: Very transparent - terminal content clearly visible
+- Omitted: Defaults to `1.0` for full opacity
 
 ## API
 

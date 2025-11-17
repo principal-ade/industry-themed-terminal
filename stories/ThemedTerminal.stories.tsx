@@ -349,6 +349,119 @@ export const ErrorOverlay: Story = {
 };
 
 /**
+ * Terminal with full opacity overlay (completely hides content)
+ */
+export const FullOpacityOverlay: Story = {
+  args: {
+    headerTitle: 'Terminal',
+    headerSubtitle: '/home/user/project',
+    overlayState: {
+      message: 'This terminal is controlled by another window',
+      subtitle: 'Terminal content is completely hidden',
+      opacity: 1.0,
+      actions: [
+        {
+          label: 'Take Control',
+          onClick: () => console.log('Take control'),
+          primary: true,
+        },
+      ],
+    },
+  },
+  render: (args) => {
+    const terminalRef = useRef<ThemedTerminalRef>(null);
+
+    useEffect(() => {
+      if (terminalRef.current) {
+        // Add some content to show that it's hidden
+        terminalRef.current.write('\x1b[1;32mThis text should be completely hidden\x1b[0m\r\n');
+        terminalRef.current.write('$ ls -la\r\n');
+        terminalRef.current.write('You should not see this content!\r\n');
+      }
+    }, []);
+
+    return (
+      <div style={{ height: '600px', width: '100%' }}>
+        <ThemedTerminalWithProvider ref={terminalRef} {...args} />
+      </div>
+    );
+  },
+};
+
+/**
+ * Terminal with semi-transparent overlay (shows content underneath)
+ */
+export const SemiTransparentOverlay: Story = {
+  args: {
+    headerTitle: 'Terminal',
+    headerSubtitle: '/home/user/project',
+    overlayState: {
+      message: 'Loading...',
+      subtitle: 'Terminal content is partially visible',
+      opacity: 0.85,
+    },
+  },
+  render: (args) => {
+    const terminalRef = useRef<ThemedTerminalRef>(null);
+
+    useEffect(() => {
+      if (terminalRef.current) {
+        // Add some content to show through the overlay
+        terminalRef.current.write('\x1b[1;36m=== Terminal Content Below ===\x1b[0m\r\n\r\n');
+        terminalRef.current.write('$ npm install\r\n');
+        terminalRef.current.write('\x1b[32m✓\x1b[0m Installed 245 packages\r\n');
+        terminalRef.current.write('\x1b[32m✓\x1b[0m Build successful\r\n\r\n');
+        terminalRef.current.write('You should see this text through the overlay!\r\n');
+      }
+    }, []);
+
+    return (
+      <div style={{ height: '600px', width: '100%' }}>
+        <ThemedTerminalWithProvider ref={terminalRef} {...args} />
+      </div>
+    );
+  },
+};
+
+/**
+ * Terminal with very transparent overlay (mostly see-through)
+ */
+export const VeryTransparentOverlay: Story = {
+  args: {
+    headerTitle: 'Terminal',
+    headerSubtitle: '/home/user/project',
+    overlayState: {
+      message: 'Preview Mode',
+      subtitle: 'Terminal content is clearly visible',
+      opacity: 0.5,
+    },
+  },
+  render: (args) => {
+    const terminalRef = useRef<ThemedTerminalRef>(null);
+
+    useEffect(() => {
+      if (terminalRef.current) {
+        // Add colorful content to show through the overlay
+        terminalRef.current.write('\x1b[1;32m=== Very Transparent Overlay Test ===\x1b[0m\r\n\r\n');
+        terminalRef.current.write('\x1b[31m● Red text\x1b[0m\r\n');
+        terminalRef.current.write('\x1b[32m● Green text\x1b[0m\r\n');
+        terminalRef.current.write('\x1b[33m● Yellow text\x1b[0m\r\n');
+        terminalRef.current.write('\x1b[34m● Blue text\x1b[0m\r\n');
+        terminalRef.current.write('\x1b[35m● Magenta text\x1b[0m\r\n');
+        terminalRef.current.write('\x1b[36m● Cyan text\x1b[0m\r\n');
+        terminalRef.current.write('\r\nAll colors should be clearly visible!\r\n');
+      }
+    }, []);
+
+    return (
+      <div style={{ height: '600px', width: '100%' }}>
+        <ThemedTerminalWithProvider ref={terminalRef} {...args} />
+      </div>
+    );
+  },
+};
+
+/**
  * Interactive terminal with simulated backend
  */
 export const Interactive: Story = {
