@@ -23,7 +23,7 @@ import '@xterm/xterm/css/xterm.css';
 import '../styles/terminal-theme.css';
 
 import type { Theme } from '@principal-ade/industry-theme';
-import type { ThemedTerminalProps, ThemedTerminalRef } from '../types/terminal.types';
+import type { ThemedTerminalProps, ThemedTerminalRef, TerminalScrollPosition } from '../types/terminal.types';
 import type { ISearchOptions } from '@xterm/addon-search';
 import { createTerminalTheme } from '../utils/terminalTheme';
 
@@ -58,6 +58,7 @@ export const ThemedTerminal = forwardRef<ThemedTerminalRef, ThemedTerminalCompon
       onData,
       onResize,
       onLinkClick,
+      onScrollPositionChange,
       className = '',
       hideHeader = false,
       headerTitle = 'Terminal',
@@ -94,6 +95,28 @@ export const ThemedTerminal = forwardRef<ThemedTerminalRef, ThemedTerminalCompon
     useEffect(() => {
       isVisibleRef.current = isVisible;
     }, [isVisible]);
+
+    // Helper function to get current scroll position state
+    const getScrollPosition = (): TerminalScrollPosition => {
+      if (!terminal) {
+        return {
+          isAtTop: false,
+          isAtBottom: true,
+          isScrollLocked: isScrollLockedRef.current,
+        };
+      }
+
+      const scrollY = terminal.buffer.active.viewportY;
+      const scrollback = terminal.buffer.active.baseY;
+      const isAtTop = scrollY === 0;
+      const isAtBottom = (scrollY + terminal.rows) >= (scrollback + terminal.rows);
+
+      return {
+        isAtTop,
+        isAtBottom,
+        isScrollLocked: isScrollLockedRef.current,
+      };
+    };
 
     // Expose public methods via ref
     useImperativeHandle(
@@ -191,6 +214,8 @@ export const ThemedTerminal = forwardRef<ThemedTerminalRef, ThemedTerminalCompon
             }
           }
         },
+        isScrollLocked: () => isScrollLockedRef.current,
+        getScrollPosition,
       }),
       [terminal],
     );
@@ -264,10 +289,20 @@ export const ThemedTerminal = forwardRef<ThemedTerminalRef, ThemedTerminalCompon
       const scrollDisposable = term.onScroll(() => {
         const scrollY = term.buffer.active.viewportY;
         const scrollback = term.buffer.active.baseY;
+        const isAtTop = scrollY === 0;
         const isAtBottom = (scrollY + term.rows) >= (scrollback + term.rows);
 
         // Lock if at bottom, unlock if user scrolled up
         isScrollLockedRef.current = isAtBottom;
+
+        // Notify parent of scroll position change
+        if (onScrollPositionChange) {
+          onScrollPositionChange({
+            isAtTop,
+            isAtBottom,
+            isScrollLocked: isAtBottom,
+          });
+        }
       });
 
       // Add WebGL renderer if enabled

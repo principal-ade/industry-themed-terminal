@@ -14,6 +14,7 @@ export type {
   ThemedTerminalRef,
   TerminalHeaderBadge,
   TerminalOverlayState,
+  TerminalScrollPosition,
 } from './src/types/terminal.types';
 
 // Hooks

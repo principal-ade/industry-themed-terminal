@@ -30,6 +30,18 @@ export interface TerminalHeaderBadge {
 }
 
 /**
+ * Scroll position state for the terminal
+ */
+export interface TerminalScrollPosition {
+  /** Whether the viewport is at the top of the buffer */
+  isAtTop: boolean;
+  /** Whether the viewport is at the bottom of the buffer */
+  isAtBottom: boolean;
+  /** Whether auto-scroll to bottom is enabled */
+  isScrollLocked: boolean;
+}
+
+/**
  * Props for the ThemedTerminal component
  */
 export interface ThemedTerminalProps {
@@ -42,6 +54,9 @@ export interface ThemedTerminalProps {
 
   /** Callback when a link is clicked in the terminal */
   onLinkClick?: (url: string, isLocalhost: boolean) => void;
+
+  /** Callback when scroll position changes (at top, at bottom, scroll lock state) */
+  onScrollPositionChange?: (position: TerminalScrollPosition) => void;
 
   // === Display ===
   /** Optional class name for container styling */
@@ -168,4 +183,10 @@ export interface ThemedTerminalRef {
 
   /** Clear search highlights */
   clearSearch: () => void;
+
+  /** Get current scroll lock state */
+  isScrollLocked: () => boolean;
+
+  /** Get current scroll position state */
+  getScrollPosition: () => TerminalScrollPosition;
 }
