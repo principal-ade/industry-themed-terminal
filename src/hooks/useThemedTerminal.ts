@@ -1,4 +1,4 @@
-import { useTheme, type Theme } from '@a24z/industry-theme';
+import { useTheme, type Theme } from '@principal-ade/industry-theme';
 import { useMemo } from 'react';
 import type { ITerminalOptions } from '@xterm/xterm';
 import { createTerminalTheme, getTerminalCSSVariables } from '../utils/terminalTheme';

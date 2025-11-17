@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import { useTheme } from '@a24z/industry-theme';
+import { useTheme } from '@principal-ade/industry-theme';
 import { ThemedTerminal } from './ThemedTerminal';
 import type { ThemedTerminalProps, ThemedTerminalRef } from '../types/terminal.types';
 
@@ -7,11 +7,11 @@ import type { ThemedTerminalProps, ThemedTerminalRef } from '../types/terminal.t
  * ThemedTerminalWithProvider - Terminal component that automatically uses theme from context
  *
  * This component wraps ThemedTerminal and automatically gets the theme from the
- * @a24z/industry-theme ThemeProvider context.
+ * @principal-ade/industry-theme ThemeProvider context.
  *
  * @example
  * ```tsx
- * import { ThemeProvider } from '@a24z/industry-theme';
+ * import { ThemeProvider } from '@principal-ade/industry-theme';
  * import { ThemedTerminalWithProvider } from '@principal-ade/industry-themed-terminal';
  *
  * function App() {

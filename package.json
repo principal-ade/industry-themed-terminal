@@ -18,7 +18,7 @@
   },
   "scripts": {
     "build": "bun run clean && bun run build:esm && bun run build:types && bun run build:styles",
-    "build:esm": "NODE_ENV=production bun build ./index.ts --outdir ./dist --entry-naming [dir]/[name].[ext] --format esm --target browser --external react --external react-dom --external @xterm/xterm --external @xterm/addon-fit --external @xterm/addon-search --external @xterm/addon-web-links --external @xterm/addon-unicode11 --external @xterm/addon-webgl --external @a24z/industry-theme --external lucide-react",
+    "build:esm": "NODE_ENV=production bun build ./index.ts --outdir ./dist --entry-naming [dir]/[name].[ext] --format esm --target browser --external react --external react-dom --external @xterm/xterm --external @xterm/addon-fit --external @xterm/addon-search --external @xterm/addon-web-links --external @xterm/addon-unicode11 --external @xterm/addon-webgl --external @principal-ade/industry-theme --external lucide-react",
     "build:types": "tsc --project tsconfig.build.json --emitDeclarationOnly --declaration --declarationMap",
     "build:styles": "cp src/styles/terminal-theme.css dist/styles.css",
     "dev": "bun run build --watch",
@@ -44,7 +44,7 @@
   "author": "Principal ADE Team",
   "license": "MIT",
   "dependencies": {
-    "@a24z/industry-theme": "^0.1.1"
+    "@principal-ade/industry-theme": "^0.1.2"
   },
   "peerDependencies": {
     "@xterm/addon-fit": ">=0.10.0",

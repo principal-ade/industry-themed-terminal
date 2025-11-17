@@ -22,7 +22,7 @@ import { SearchAddon } from '@xterm/addon-search';
 import '@xterm/xterm/css/xterm.css';
 import '../styles/terminal-theme.css';
 
-import type { Theme } from '@a24z/industry-theme';
+import type { Theme } from '@principal-ade/industry-theme';
 import type { ThemedTerminalProps, ThemedTerminalRef } from '../types/terminal.types';
 import type { ISearchOptions } from '@xterm/addon-search';
 import { createTerminalTheme } from '../utils/terminalTheme';
