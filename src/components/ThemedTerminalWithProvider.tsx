@@ -1,7 +1,10 @@
-import { forwardRef } from 'react';
 import { useTheme } from '@principal-ade/industry-theme';
-import { ThemedTerminal } from './ThemedTerminal';
+import { forwardRef } from 'react';
+
 import type { ThemedTerminalProps, ThemedTerminalRef } from '../types/terminal.types';
+
+import { ThemedTerminal } from './ThemedTerminal';
+
 
 /**
  * ThemedTerminalWithProvider - Terminal component that automatically uses theme from context

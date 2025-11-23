@@ -1,5 +1,5 @@
-import type { Terminal } from '@xterm/xterm';
 import type { ISearchOptions } from '@xterm/addon-search';
+import type { Terminal } from '@xterm/xterm';
 
 /**
  * Overlay state for displaying messages over the terminal

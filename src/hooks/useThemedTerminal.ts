@@ -1,6 +1,7 @@
 import { useTheme, type Theme } from '@principal-ade/industry-theme';
-import { useMemo } from 'react';
 import type { ITerminalOptions } from '@xterm/xterm';
+import { useMemo } from 'react';
+
 import { createTerminalTheme, getTerminalCSSVariables } from '../utils/terminalTheme';
 
 export interface UseThemedTerminalReturn {

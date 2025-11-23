@@ -1,31 +1,38 @@
+
+import type { Theme } from '@principal-ade/industry-theme';
+import { FitAddon } from '@xterm/addon-fit';
+import type { ISearchOptions } from '@xterm/addon-search';
+import { SearchAddon } from '@xterm/addon-search';
+import { WebLinksAddon } from '@xterm/addon-web-links';
+import { Terminal } from '@xterm/xterm';
 import {
+  ChevronDown,
+  ExternalLink,
+  Monitor,
+  Terminal as TerminalIcon,
+  X,
+} from 'lucide-react';
+import {
+  forwardRef,
   useEffect,
+  useImperativeHandle,
   useRef,
   useState,
-  useImperativeHandle,
-  forwardRef,
 } from 'react';
-import {
-  Terminal as TerminalIcon,
-  ExternalLink,
-  ChevronDown,
-  X,
-  Monitor,
-} from 'lucide-react';
-import { Terminal } from '@xterm/xterm';
-import { FitAddon } from '@xterm/addon-fit';
-import { WebLinksAddon } from '@xterm/addon-web-links';
-import { SearchAddon } from '@xterm/addon-search';
 // Disabled for performance - uncomment if needed:
 // import { WebglAddon } from '@xterm/addon-webgl';
 // import { Unicode11Addon } from '@xterm/addon-unicode11';
-import '@xterm/xterm/css/xterm.css';
-import '../styles/terminal-theme.css';
 
-import type { Theme } from '@principal-ade/industry-theme';
-import type { ThemedTerminalProps, ThemedTerminalRef, TerminalScrollPosition } from '../types/terminal.types';
-import type { ISearchOptions } from '@xterm/addon-search';
+import '@xterm/xterm/css/xterm.css';
+
+import type {
+  TerminalScrollPosition,
+  ThemedTerminalProps,
+  ThemedTerminalRef,
+} from '../types/terminal.types';
 import { createTerminalTheme } from '../utils/terminalTheme';
+
+import '../styles/terminal-theme.css';
 
 export interface ThemedTerminalComponentProps extends ThemedTerminalProps {
   theme: Theme;
@@ -327,7 +334,9 @@ export const ThemedTerminal = forwardRef<ThemedTerminalRef, ThemedTerminalCompon
 
       // Simple fit function
       const performFit = () => {
-        if (!fitAddonRef.current || !terminalRef.current || !term || !isVisibleRef.current) return;
+        if (!fitAddonRef.current || !terminalRef.current || !term || !isVisibleRef.current) {
+          return;
+        }
 
         fitAddonRef.current.fit();
 
@@ -373,7 +382,6 @@ export const ThemedTerminal = forwardRef<ThemedTerminalRef, ThemedTerminalCompon
         }
         term.dispose();
       };
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [theme, onLinkClick, cursorBlink, cursorStyle, scrollback, fontSize, fontFamily, enableSearch, enableWebLinks, enableUnicode11, enableWebGL]);
 
     // Handle terminal data input (user typing)
